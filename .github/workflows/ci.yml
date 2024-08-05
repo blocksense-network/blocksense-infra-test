@@ -12,6 +12,9 @@ on:
     branches:
       - main
 
+  # Run the pipeline for each PR part of merge queues as well
+  merge_group:
+
 jobs:
   lint:
     runs-on: self-hosted
