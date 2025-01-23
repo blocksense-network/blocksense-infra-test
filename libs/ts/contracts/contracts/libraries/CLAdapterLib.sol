@@ -51,7 +51,7 @@ library CLAdapterLib {
         // 1st 2 bytes are function selector and stride (which is always 0 for CL adapters)
         // after that are 15 bytes of the feed id
         // after the feed id are 2 bytes of the round id
-        (uint256(0x84) << 248) | id | (uint256(_roundId) << 104)
+        (uint256(0x86) << 248) | id | (uint256(_roundId) << 104)
       )
     );
     return (_roundId, answer, startedAt, startedAt, _roundId);
@@ -110,7 +110,7 @@ library CLAdapterLib {
       )
 
       // call dataFeedStore with selector and store return value (64 bytes) at memory location ptr
-      let success := staticcall(gas(), dataFeedStore, 0x00, 19, ptr, 64)
+      let success := staticcall(gas(), dataFeedStore, 0x00, 17, ptr, 64)
 
       // revert if call failed
       if iszero(success) {
@@ -153,7 +153,7 @@ library CLAdapterLib {
         gas(), // gas remaining
         dataFeedStore, // address to call
         0x00, // location of data to call
-        21, // size of data to call - usually it is 19b but for _getRoundData it is 21b because of the 2 bytes of the roundId
+        19, // size of data to call - usually it is 17b but for _getRoundData it is 19b because of the 2 bytes of the roundId
         ptr, // where to store the return data
         32 // how much data to store
       )
@@ -172,6 +172,7 @@ library CLAdapterLib {
   /// @param data The data to decode
   /// @return answer The value stored for the feed at the given round ID
   /// @return timestamp The timestamp when the value was stored
+
   function _decodeData(bytes32 data) internal pure returns (int256, uint256) {
     return (int256(uint256(uint192(bytes24(data)))), uint64(uint256(data)));
   }
