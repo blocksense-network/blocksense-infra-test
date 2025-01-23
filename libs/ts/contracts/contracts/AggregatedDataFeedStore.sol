@@ -141,7 +141,7 @@ contract AggregatedDataFeedStore {
         let len := 0
         let ptr := mload(0x40)
 
-        // 0x83 will call both getLatestData and getLatestSingleData
+        // 0x83 will call both getLatestRound and getLatestSingleData
         // 0x85 will call both getLatestRound and getLatestData
         // getLatestRound(uint8 stride, uint120 feedId) returns (uint16)
         if and(selector, 0x01) {
