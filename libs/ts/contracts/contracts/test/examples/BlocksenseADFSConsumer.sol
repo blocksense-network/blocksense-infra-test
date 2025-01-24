@@ -7,7 +7,7 @@ import {BlocksenseExp} from '../../experiments/libraries/BlocksenseExp.sol';
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-contract BlocksenseFeedStoreConsumer {
+contract BlocksenseADFSConsumer {
   address public immutable feed;
 
   constructor(address feedAddress) {

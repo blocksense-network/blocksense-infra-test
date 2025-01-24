@@ -2,13 +2,13 @@ import { artifacts, ethers } from 'hardhat';
 import {
   BlocksenseFeedStoreConsumer,
   RawCallFeedStoreConsumer,
-} from '../../typechain';
-import { deployContract } from '../experiments/utils/helpers/common';
-import { HistoricalDataFeedStoreV2Wrapper } from '../experiments/utils/wrappers';
+} from '../../../typechain';
+import { deployContract } from '../utils/helpers/common';
+import { HistoricalDataFeedStoreV2Wrapper } from '../utils/wrappers';
 import * as utils from './utils/feedStoreConsumer';
 import { expect } from 'chai';
 
-describe('Example: FeedStoreConsumer', function () {
+describe('[Experiments] Example: FeedStoreConsumer', function () {
   let dataFeedStore: HistoricalDataFeedStoreV2Wrapper;
   let blocksenseFeedStoreConsumer: BlocksenseFeedStoreConsumer;
   let rawCallFeedStoreConsumer: RawCallFeedStoreConsumer;

@@ -1,12 +1,12 @@
 import { artifacts, ethers } from 'hardhat';
-import { CLFeedRegistryAdapterConsumer } from '../../typechain';
-import { TOKENS, deployContract } from '../experiments/utils/helpers/common';
+import { CLFeedRegistryAdapterConsumer } from '../../../typechain';
+import { TOKENS, deployContract } from '../utils/helpers/common';
 import {
   CLRegistryBaseWrapper,
   CLV2Wrapper,
   UpgradeableProxyHistoricalDataFeedStoreV2Wrapper,
-} from '../experiments/utils/wrappers';
-import * as utils from './utils/clFeedRegistryAdapterConsumer';
+} from '../utils/wrappers';
+import * as utils from '../../examples/utils/clFeedRegistryAdapterConsumer';
 import { expect } from 'chai';
 
 const data = [
@@ -22,7 +22,7 @@ const data = [
   },
 ];
 
-describe('Example: CLFeedRegistryAdapterConsumer', function () {
+describe('[Experiments] Example: CLFeedRegistryAdapterConsumer', function () {
   let feedRegistry: CLRegistryBaseWrapper;
   let clFeedRegistryAdapterConsumer: CLFeedRegistryAdapterConsumer;
 
@@ -115,7 +115,7 @@ describe('Example: CLFeedRegistryAdapterConsumer', function () {
 
     const config = {
       address: feedRegistry.contract.target,
-      abiJson: (await artifacts.readArtifact('CLFeedRegistryAdapter')).abi,
+      abiJson: (await artifacts.readArtifact('CLFeedRegistryAdapterExp')).abi,
       provider: feedRegistry.contract.runner!,
     };
     const utilData1 = await utils[functionName](config, ...data[0]);

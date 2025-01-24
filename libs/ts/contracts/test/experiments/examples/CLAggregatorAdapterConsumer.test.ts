@@ -1,14 +1,14 @@
 import { artifacts, ethers } from 'hardhat';
-import { CLAggregatorAdapterConsumer } from '../../typechain';
-import { deployContract } from '../experiments/utils/helpers/common';
+import { CLAggregatorAdapterConsumer } from '../../../typechain';
+import { deployContract } from '../utils/helpers/common';
 import {
   CLV2Wrapper,
   UpgradeableProxyHistoricalDataFeedStoreV2Wrapper,
-} from '../experiments/utils/wrappers';
-import * as utils from './utils/clAggregatorAdapterConsumer';
+} from '../utils/wrappers';
+import * as utils from '../../examples/utils/clAggregatorAdapterConsumer';
 import { expect } from 'chai';
 
-describe('Example: CLAggregatorAdapterConsumer', function () {
+describe('[Experiments] Example: CLAggregatorAdapterConsumer', function () {
   let clAggregatorAdapter: CLV2Wrapper;
   let clAggregatorAdapterConsumer: CLAggregatorAdapterConsumer;
 
@@ -24,8 +24,6 @@ describe('Example: CLAggregatorAdapterConsumer', function () {
 
     const value = ethers.encodeBytes32String('1234');
     await clAggregatorAdapter.setFeed(value);
-
-    const owner = (await ethers.getSigners())[2];
 
     clAggregatorAdapterConsumer =
       await deployContract<CLAggregatorAdapterConsumer>(
@@ -60,7 +58,7 @@ describe('Example: CLAggregatorAdapterConsumer', function () {
 
     const config = {
       address: clAggregatorAdapter.contract.target,
-      abiJson: (await artifacts.readArtifact('CLAggregatorAdapter')).abi,
+      abiJson: (await artifacts.readArtifact('CLAggregatorAdapterExp')).abi,
       provider: clAggregatorAdapter.contract.runner!,
     };
     const utilData = await utils[functionName](config, ...data);
