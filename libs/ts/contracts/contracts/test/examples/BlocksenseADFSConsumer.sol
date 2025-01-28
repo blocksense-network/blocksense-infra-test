@@ -1,49 +1,112 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BlocksenseExp} from '../../experiments/libraries/BlocksenseExp.sol';
+import {Blocksense} from '../../libraries/Blocksense.sol';
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 contract BlocksenseADFSConsumer {
-  address public immutable feed;
+  address public immutable adfs;
 
-  constructor(address feedAddress) {
-    feed = feedAddress;
+  constructor(address _adfs) {
+    adfs = _adfs;
   }
 
-  function getLatestAnswer(
-    uint32 key
-  ) external view returns (uint256 value, uint64 timestamp) {
-    bytes32 data = BlocksenseExp._callDataFeed(
-      feed,
-      abi.encodePacked(0x80000000 | key)
-    );
-
-    return (uint256(uint192(bytes24(data))), uint64(uint256(data)));
+  function getLatestSingleFeedData(uint256 id) external view returns (bytes32) {
+    return Blocksense._getLatestSingleFeedData(adfs, id);
   }
 
-  function getRoundData(
-    uint32 key,
-    uint32 roundId
-  ) external view returns (uint256 value, uint64 timestamp) {
-    bytes32 data = BlocksenseExp._callDataFeed(
-      feed,
-      abi.encodeWithSelector(bytes4(0x20000000 | key), roundId)
-    );
-
-    return (uint256(uint192(bytes24(data))), uint64(uint256(data)));
+  function getLatestFeedData(
+    uint256 stride,
+    uint256 id
+  ) external view returns (bytes32[] memory) {
+    return Blocksense._getLatestFeedData(adfs, stride, id);
   }
 
-  function getLatestRound(uint32 key) external view returns (uint32 roundId) {
-    return uint32(BlocksenseExp._latestRound(key, feed));
+  function getLatestSlicedFeedData(
+    uint256 stride,
+    uint256 id,
+    uint256 startSlot,
+    uint256 slotsCount
+  ) external view returns (bytes32[] memory) {
+    return
+      Blocksense._getLatestSlicedFeedData(
+        adfs,
+        stride,
+        id,
+        startSlot,
+        slotsCount
+      );
   }
 
-  function getLatestRoundData(
-    uint32 key
-  ) external view returns (int256 value, uint256 timestamp, uint80 roundId) {
-    (roundId, value, timestamp, , ) = BlocksenseExp._latestRoundData(key, feed);
+  function getLatestRound(
+    uint256 stride,
+    uint256 id
+  ) external view returns (uint256 round) {
+    return Blocksense._getLatestRound(adfs, stride, id);
+  }
+
+  function getSingleFeedDataAtRound(
+    uint256 id,
+    uint256 round
+  ) external view returns (bytes32) {
+    return Blocksense._getSingleFeedDataAtRound(adfs, id, round);
+  }
+
+  function getFeedDataAtRound(
+    uint256 stride,
+    uint256 id,
+    uint256 round
+  ) external view returns (bytes32[] memory) {
+    return Blocksense._getFeedDataAtRound(adfs, stride, id, round);
+  }
+
+  function getSlicedFeedDataAtRound(
+    uint256 stride,
+    uint256 id,
+    uint256 round,
+    uint256 startSlot,
+    uint256 slotsCount
+  ) external view returns (bytes32[] memory) {
+    return
+      Blocksense._getSlicedFeedDataAtRound(
+        adfs,
+        stride,
+        id,
+        round,
+        startSlot,
+        slotsCount
+      );
+  }
+
+  function getLatestSingleFeedDataAndRound(
+    uint256 id
+  ) external view returns (bytes32 data, uint256 round) {
+    return Blocksense._getLatestSingleFeedDataAndRound(adfs, id);
+  }
+
+  function getLatestFeedDataAndRound(
+    uint256 stride,
+    uint256 id
+  ) external view returns (bytes32[] memory data, uint256 round) {
+    return Blocksense._getLatestFeedDataAndRound(adfs, stride, id);
+  }
+
+  function getLatestSlicedFeedDataAndRound(
+    uint256 stride,
+    uint256 id,
+    uint256 startSlot,
+    uint256 slotsCount
+  ) external view returns (bytes32[] memory data, uint256 round) {
+    return
+      Blocksense._getLatestSlicedFeedDataAndRound(
+        adfs,
+        stride,
+        id,
+        startSlot,
+        slotsCount
+      );
   }
 }
