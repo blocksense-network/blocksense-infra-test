@@ -6,60 +6,178 @@ pragma solidity ^0.8.24;
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 contract RawCallADFSConsumer {
-  address public immutable feed;
+  address public immutable adfs;
 
-  constructor(address feedAddress) {
-    feed = feedAddress;
+  constructor(address _adfs) {
+    adfs = _adfs;
   }
 
-  function getLatestAnswer(
-    uint32 key
-  ) external view returns (uint256 value, uint64 timestamp) {
-    (bool success, bytes memory returnData) = feed.staticcall(
-      abi.encodePacked(0x80000000 | key)
+  function getLatestSingleFeedData(
+    uint256 id
+  ) external view returns (bytes32 data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x82), uint8(0), uint120(id))
     );
-    require(success, 'DataFeedStore: call failed');
+    require(success, 'ADFS: call failed');
 
-    return (
-      uint256(uint192(bytes24(returnData))),
-      uint64(uint256(bytes32(returnData)))
-    );
+    return (bytes32(returnData));
   }
 
-  function getRoundData(
-    uint32 key,
-    uint32 roundId
-  ) external view returns (uint256 value, uint64 timestamp) {
-    (bool success, bytes memory returnData) = feed.staticcall(
-      abi.encodeWithSelector(bytes4(0x20000000 | key), roundId)
+  function getLatestFeedData(
+    uint8 stride,
+    uint256 id
+  ) external view returns (bytes32[] memory data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x84), stride, uint120(id))
     );
-    require(success, 'DataFeedStore: call failed');
+    require(success, 'ADFS: call failed');
 
-    bytes32 data = bytes32(returnData);
-    return (uint256(uint192(bytes24(data))), uint64(uint256(data)));
+    return parseBytesToBytes32Array(returnData);
   }
 
-  function getLatestRound(uint32 key) external view returns (uint32 roundId) {
-    (bool success, bytes memory returnData) = feed.staticcall(
-      abi.encodePacked(0x40000000 | key)
+  function getLatestSlicedFeedData(
+    uint8 stride,
+    uint256 id,
+    uint32 startSlot,
+    uint32 slotsCount
+  ) external view returns (bytes32[] memory data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x84), stride, uint120(id), startSlot, slotsCount)
     );
-    require(success, 'DataFeedStore: call failed');
+    require(success, 'ADFS: call failed');
 
-    (, roundId) = abi.decode(returnData, (bytes32, uint32));
+    return parseBytesToBytes32Array(returnData);
   }
 
-  function getLatestRoundData(
-    uint32 key
-  ) external view returns (uint256 value, uint64 timestamp, uint256 roundId) {
-    (bool success, bytes memory returnData) = feed.staticcall(
-      abi.encodePacked(0xc0000000 | key)
+  function getSingleFeedDataAtRound(
+    uint256 id,
+    uint256 round
+  ) external view returns (bytes32 data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x86), uint8(0), uint120(id), uint16(round))
     );
-    require(success, 'DataFeedStore: call failed');
+    require(success, 'ADFS: call failed');
 
-    (bytes32 data1, bytes32 data2) = abi.decode(returnData, (bytes32, bytes32));
+    return (bytes32(returnData));
+  }
 
-    value = uint256(uint192(bytes24(data1)));
-    timestamp = uint64(uint256(data1));
-    roundId = uint256(data2);
+  function getFeedDataAtRound(
+    uint8 stride,
+    uint256 id,
+    uint256 round
+  ) external view returns (bytes32[] memory data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x86), stride, uint120(id), uint16(round))
+    );
+    require(success, 'ADFS: call failed');
+
+    return parseBytesToBytes32Array(returnData);
+  }
+
+  function getSlicedFeedDataAtRound(
+    uint8 stride,
+    uint256 id,
+    uint256 round,
+    uint32 startSlot,
+    uint32 slotsCount
+  ) external view returns (bytes32[] memory data) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(
+        bytes1(0x86),
+        stride,
+        uint120(id),
+        uint16(round),
+        startSlot,
+        slotsCount
+      )
+    );
+    require(success, 'ADFS: call failed');
+
+    return parseBytesToBytes32Array(returnData);
+  }
+
+  function getLatestRound(
+    uint8 stride,
+    uint256 id
+  ) external view returns (uint256 round) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x81), stride, uint120(id))
+    );
+    require(success, 'ADFS: call failed');
+
+    return uint256(bytes32(returnData));
+  }
+
+  function getLatestSingleFeedDataAndRound(
+    uint256 id
+  ) external view returns (bytes32 data, uint256 round) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x83), uint8(0), uint120(id))
+    );
+    require(success, 'ADFS: call failed');
+
+    (round, data) = abi.decode(returnData, (uint256, bytes32));
+  }
+
+  function getLatestFeedDataAndRound(
+    uint8 stride,
+    uint256 id
+  ) external view returns (bytes32[] memory data, uint256 round) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x85), stride, uint120(id))
+    );
+    require(success, 'ADFS: call failed');
+
+    round = uint256(bytes32(returnData));
+
+    assembly {
+      let len := mload(returnData)
+      returnData := add(returnData, 32)
+      mstore(returnData, sub(len, 32))
+    }
+
+    data = parseBytesToBytes32Array(returnData);
+  }
+
+  function getLatestSlicedFeedDataAndRound(
+    uint8 stride,
+    uint256 id,
+    uint32 startSlot,
+    uint32 slotsCount
+  ) external view returns (bytes32[] memory data, uint256 round) {
+    (bool success, bytes memory returnData) = adfs.staticcall(
+      abi.encodePacked(bytes1(0x85), stride, uint120(id), startSlot, slotsCount)
+    );
+    require(success, 'ADFS: call failed');
+
+    round = uint256(bytes32(returnData));
+
+    assembly {
+      let len := mload(returnData)
+      returnData := add(returnData, 32)
+      mstore(returnData, sub(len, 32))
+    }
+
+    data = parseBytesToBytes32Array(returnData);
+  }
+
+  function parseBytesToBytes32Array(
+    bytes memory data
+  ) internal pure returns (bytes32[] memory result) {
+    uint256 length = data.length;
+    result = new bytes32[](length >> 5);
+
+    assembly {
+      length := add(length, 32)
+      for {
+        let i := 32
+      } gt(length, i) {
+        i := add(i, 32)
+      } {
+        mstore(add(result, i), mload(add(data, i)))
+      }
+    }
+
+    return result;
   }
 }
