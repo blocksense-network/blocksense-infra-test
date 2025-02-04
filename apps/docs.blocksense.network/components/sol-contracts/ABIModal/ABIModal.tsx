@@ -93,7 +93,7 @@ export const ABIModal = ({ abi, name = '' }: ABIModalProps) => {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <section className="flex items-center justify-between px-4 py-2">
+          <section className="flex items-center justify-between text-left pl-2 pb-2">
             <DrawerTitle>{title}</DrawerTitle>
             <FormatButton
               isFormatted={isFormatted}
@@ -102,13 +102,13 @@ export const ABIModal = ({ abi, name = '' }: ABIModalProps) => {
           </section>
           <DrawerDescription />
         </DrawerHeader>
-        <div className="max-h-96 overflow-y-scroll pb-6">
+        <ScrollArea className="border border-neutral-200 dark:border-neutral-600 rounded-md mx-4 mb-4">
           <CodeBlock
             code={getABI()}
             lang="json"
-            themes={{ light: 'github-light', dark: 'vitesse-dark' }}
+            themes={shikiDefaultThemes.jsonThemes}
           />
-        </div>
+        </ScrollArea>
       </DrawerContent>
     </Drawer>
   );
