@@ -151,7 +151,9 @@ pub async fn get_serialized_updates_for_network(
     feeds_metrics: Option<Arc<RwLock<FeedsMetrics>>>,
     feeds_config: Arc<RwLock<HashMap<u32, FeedConfig>>>,
 ) -> Result<String> {
+    debug!("Acquiring a read lock on provider config for `{net}`");
     let provider = provider.lock().await;
+    debug!("Acquired a read lock on provider config for `{net}`");
     filter_allowed_feeds(net, updates, &provider_settings.allow_feeds);
     provider.peg_stable_coins_to_value(updates);
     provider.apply_publish_criteria(updates);
@@ -163,6 +165,7 @@ pub async fn get_serialized_updates_for_network(
 
     let contract_version = provider.contract_version;
     drop(provider);
+    debug!("Released a read lock on provider config for `{net}`");
 
     let serialized_updates = match contract_version {
         1 => legacy_serialize_updates(net, updates)?,
@@ -203,7 +206,15 @@ pub async fn eth_batch_send_to_contract(
         return Ok((format!("No updates to send for network {net}"), Vec::new()));
     }
 
+    debug!(
+        "About to post {} updates to smart contract for network `{net}`",
+        updates.updates.len()
+    );
+
+    debug!("Acquiring a read/write lock on provider state for network `{net}`");
     let mut provider = provider.lock().await;
+    debug!("Acquired a read/write lock on provider state for network `{net}`");
+
     let signer = &provider.signer;
     let contract_address = if feed_type == Periodic {
         provider
@@ -221,41 +232,39 @@ pub async fn eth_batch_send_to_contract(
     );
 
     let provider_metrics = &provider.provider_metrics;
-    let prov = &provider.provider;
+    let rpc_handle = &provider.provider;
 
     let calldata_str = serialized_updates;
 
     let input =
         Bytes::from_hex(calldata_str).map_err(|e| eyre!("Key is not valid hex string: {}", e))?;
 
+    debug!("Observing gas price (base_fee) for network {net}...");
     let base_fee = process_provider_getter!(
-        prov.get_gas_price().await,
+        rpc_handle.get_gas_price().await,
         net,
         provider_metrics,
         get_gas_price
     );
-
     debug!("Observed gas price (base_fee) for network {net} = {base_fee}");
+
+    debug!("Acquiring a read lock on provider_metrics for network `{net}`");
     provider_metrics
         .read()
         .await
         .gas_price
         .with_label_values(&[net.as_str()])
         .observe((base_fee as f64) / 1000000000.0);
+    debug!("Acquired and released a read lock on provider_metrics for network `{net}`");
 
-    let _max_priority_fee_per_gas = process_provider_getter!(
-        prov.get_max_priority_fee_per_gas().await,
-        net,
-        provider_metrics,
-        get_max_priority_fee_per_gas
-    );
-
+    debug!("Getting chain_id for network {net}...");
     let chain_id = process_provider_getter!(
-        prov.get_chain_id().await,
+        rpc_handle.get_chain_id().await,
         net,
         provider_metrics,
         get_chain_id
     );
+    debug!("Got chain_id={chain_id} for network {net}");
 
     let receipt;
     let tx_time = Instant::now();
@@ -277,7 +286,7 @@ pub async fn eth_batch_send_to_contract(
     let mut timed_out_count = 0;
 
     loop {
-        info!("loop begin; timed_out_count={timed_out_count}");
+        debug!("loop begin; timed_out_count={timed_out_count}");
         let tx;
         if timed_out_count == 0 {
             tx = TransactionRequest::default()
@@ -287,13 +296,48 @@ pub async fn eth_batch_send_to_contract(
                 .input(Some(input.clone()).into());
             debug!("Sending initial tx: {tx:?}");
         } else {
-            let nonce = prov
+            debug!("Getting nonce for network {net}...");
+            let nonce = match rpc_handle
                 .get_transaction_count(contract_address)
                 .latest()
-                .await?;
+                .await
+            {
+                Ok(nonce) => {
+                    debug!("Got nonce={nonce} for network {net}");
+                    nonce
+                }
+                Err(err) => {
+                    debug!("Failed to get nonce for network {net} due to {err}");
+                    return Err(err.into());
+                }
+            };
+
             let price_increment = 1.0 + (timed_out_count as f64 * retry_fee_increment_fraction);
-            let gas_price = prov.get_gas_price().await?;
-            let mut priority_fee = prov.get_max_priority_fee_per_gas().await?;
+
+            debug!("Getting gas_price for network {net}...");
+            let gas_price = match rpc_handle.get_gas_price().await {
+                Ok(gas_price) => {
+                    debug!("Got gas_price={gas_price} for network {net}");
+                    gas_price
+                }
+                Err(err) => {
+                    debug!("Failed to get gas_price for network {net} due to {err}");
+                    return Err(err.into());
+                }
+            };
+
+            debug!("Getting priority_fee for network {net}...");
+            let mut priority_fee = match rpc_handle.get_max_priority_fee_per_gas().await {
+                Ok(priority_fee) => {
+                    debug!("Got priority_fee={priority_fee} for network {net}");
+                    priority_fee
+                }
+                Err(err) => {
+                    debug!("Failed to get priority_fee for network {net} due to {err}");
+                    return Err(err.into());
+                }
+            };
+
             priority_fee = (priority_fee as f64 * price_increment) as u128;
             let mut max_fee_per_gas = gas_price + gas_price + priority_fee;
             max_fee_per_gas = (max_fee_per_gas as f64 * price_increment) as u128;
@@ -312,11 +356,17 @@ pub async fn eth_batch_send_to_contract(
         debug!("tx_str={tx_str}");
 
         let tx_result = if is_impersonated {
-            let rpc_url = prov.client().transport().url().parse()?;
-            let provider = ProviderBuilder::new().on_http(rpc_url);
-            provider.send_transaction(tx).await
+            let rpc_url = rpc_handle.client().transport().url().parse()?;
+            let rpc_handle = ProviderBuilder::new().on_http(rpc_url);
+            debug!("Sending impersonated price feed update transaction to network `{net}`...");
+            let result = rpc_handle.send_transaction(tx).await;
+            debug!("Sent impersonated price feed update transaction to network `{net}`");
+            result
         } else {
-            prov.send_transaction(tx).await
+            debug!("Sending price feed update transaction to network `{net}`...");
+            let result = rpc_handle.send_transaction(tx).await;
+            debug!("Sent price feed update transaction to network `{net}`");
+            result
         };
 
         let tx_result_str = format!("{tx_result:?}");
@@ -324,6 +374,7 @@ pub async fn eth_batch_send_to_contract(
 
         let receipt_future = process_provider_getter!(tx_result, net, provider_metrics, send_tx);
 
+        debug!("Awaiting receipt for transaction to network `{net}`...");
         let receipt_result = spawn(async move {
             actix_web::rt::time::timeout(
                 Duration::from_secs(transaction_retry_timeout_secs),
@@ -332,34 +383,34 @@ pub async fn eth_batch_send_to_contract(
             .await
         })
         .await;
+        debug!("Done awaiting receipt for transaction to network `{net}`");
 
-        info!("matching receipt_result...");
+        debug!("matching receipt_result...");
 
         match receipt_result {
-            Ok(outer_result) => {
-                match outer_result {
-                    Ok(inner_result) => match inner_result {
-                        Ok(r) => {
-                            receipt = r;
-                            break;
-                        }
-                        Err(e) => {
-                            warn!("PendingTransactionError tx={tx_str}, tx_result={tx_result_str}: {e}");
-                            timed_out_count += 1;
-                        }
-                    },
+            Ok(outer_result) => match outer_result {
+                Ok(inner_result) => match inner_result {
+                    Ok(r) => {
+                        debug!("Received valid receipt for transaction to network `{net}`");
+                        receipt = r;
+                        break;
+                    }
                     Err(e) => {
-                        warn!("Timed out  tx={tx_str}, tx_result={tx_result_str}: {e}");
+                        warn!("PendingTransactionError tx={tx_str}, tx_result={tx_result_str}, network={net}: {e}");
                         timed_out_count += 1;
                     }
+                },
+                Err(e) => {
+                    warn!("Timed out tx={tx_str}, tx_result={tx_result_str}, network={net}: {e}");
+                    timed_out_count += 1;
                 }
-            }
+            },
             Err(e) => {
-                panic!("Join error tx={tx_str}, tx_result={tx_result_str}: {e}");
+                panic!("Join error tx={tx_str}, tx_result={tx_result_str}, network={net}: {e}");
             }
         }
 
-        info!("matched receipt_result");
+        debug!("matched receipt_result");
     }
 
     let transaction_time = tx_time.elapsed().as_millis();
@@ -383,14 +434,18 @@ pub async fn eth_batch_send_to_contract(
     let tx_fee = (tx_fee as f64) / 1e18;
     info!("Transaction with hash {tx_hash} on `{net}` cost {tx_fee} ETH");
 
+    debug!("Acquiring a read lock on provider_metrics for network `{net}`");
     provider_metrics
         .read()
         .await
         .transaction_confirmation_times
         .with_label_values(&[net.as_str()])
         .observe(transaction_time as f64);
+    debug!("Acquired and released a read lock on provider_metrics for network `{net}`");
 
     provider.update_history(&updates.updates);
+    drop(provider);
+    debug!("Released a read/write lock on provider state for network `{net}`");
 
     let feeds_to_update_ids = updates
         .updates
@@ -415,22 +470,29 @@ pub async fn eth_batch_send_to_all_contracts(
     // drop all the locks as soon as we are done using the data
     {
         // Locks acquired here
+        debug!("Acquiring a read lock on sequencer_state.providers");
         let providers = sequencer_state.providers.read().await;
-        let providers_config = sequencer_state.sequencer_config.read().await;
-        let providers_config = &providers_config.providers;
+        debug!("Acquired a read lock on sequencer_state.providers");
+
+        debug!("Acquiring a read lock on sequencer_state.sequencer_config");
+        let providers_config_guard = sequencer_state.sequencer_config.read().await;
+        debug!("Acquired a read lock on sequencer_state.sequencer_config");
+        let providers_config = &providers_config_guard.providers;
 
         // No lock, we propagete the shared objects to the created futures
         let feeds_metrics = sequencer_state.feeds_metrics.clone();
         let feeds_config = sequencer_state.active_feeds.clone();
 
-        for (net, p) in providers.iter() {
+        for (net, provider) in providers.iter() {
             let updates = updates.clone();
             let (
                 transaction_drop_timeout_secs,
                 transaction_retry_timeout_secs,
                 retry_fee_increment_fraction,
             ) = {
-                let p = p.lock().await;
+                debug!("Acquiring a read lock on provider for network {net}");
+                let p = provider.lock().await;
+                debug!("Acquired and releasing a read lock on provider for network {net}");
                 (
                     p.transaction_drop_timeout_secs as u64,
                     p.transaction_retry_timeout_secs as u64,
@@ -449,7 +511,7 @@ pub async fn eth_batch_send_to_all_contracts(
                 }
 
                 let updates = updates.clone();
-                let provider = p.clone();
+                let provider = provider.clone();
 
                 let feeds_config = feeds_config.clone();
                 let feeds_metrics = feeds_metrics.clone();
@@ -479,6 +541,9 @@ pub async fn eth_batch_send_to_all_contracts(
                 continue;
             }
         }
+
+        debug!("Releasing a read lock on sequencer_state.sequencer_config");
+        debug!("Releasing a read lock on sequencer_state.providers");
     }
 
     if collected_futures.is_empty() {

@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use utils::{from_hex_string, to_hex_string};
 
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use alloy_encode_packed::{self, abi::encode_packed, SolidityDataType};
 
@@ -62,7 +62,12 @@ pub async fn adfs_serialize_updates(
 
     // Fill the value updates:
     for update in updates.iter() {
-        let feed_config = feeds_config.read().await.get(&update.feed_id).cloned();
+        let feed_id = update.feed_id;
+        debug!("Acquiring a read lock on feeds_config; network={net}; feed_id={feed_id}");
+        let feed_config = feeds_config.read().await.get(&feed_id).cloned();
+        debug!(
+            "Acquired and released a read lock on feeds_config; network={net}; feed_id={feed_id}"
+        );
 
         let stride = match &feed_config {
             Some(f) => f.stride,
@@ -75,12 +80,17 @@ pub async fn adfs_serialize_updates(
         drop(feed_config);
 
         let mut round = match &feeds_metrics {
-            Some(fm) => fm
-                .read()
-                .await
-                .updates_to_networks
-                .with_label_values(&[&update.feed_id.to_string(), net])
-                .get(),
+            Some(fm) => {
+                debug!("Acquiring a read lock on feeds_metrics; network={net}; feed_id={feed_id}");
+                let round = fm
+                    .read()
+                    .await
+                    .updates_to_networks
+                    .with_label_values(&[&update.feed_id.to_string(), net])
+                    .get();
+                debug!("Acquired and released a read lock on feeds_metrics; network={net}; feed_id={feed_id}");
+                round
+            }
             None => 0,
         };
 

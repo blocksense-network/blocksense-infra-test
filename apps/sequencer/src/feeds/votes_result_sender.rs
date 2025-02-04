@@ -61,9 +61,10 @@ fn async_send_to_contracts(
     let sender = tokio::task::Builder::new()
         .name(format!("batch_sender_{batch_count}").as_str())
         .spawn_local(async move {
+            debug!("Spawned batch_sender_{batch_count}");
             match eth_batch_send_to_all_contracts(sequencer_state, updates, Periodic).await {
-                Ok(res) => info!("Sending updates complete {}.", res),
-                Err(err) => error!("ERROR Sending updates {}", err),
+                Ok(res) => info!("Sending updates complete {res}."),
+                Err(err) => error!("ERROR Sending updates {err}"),
             };
         });
     if let Err(err) = sender {
@@ -85,7 +86,7 @@ async fn try_send_aggregation_consensus_trigger_to_reporters(
     let providers = sequencer_state.providers.read().await;
 
     // iterate for all supported networks and generate a calldata for the contract accordingly
-    for (net, p) in providers.iter() {
+    for (net, provider) in providers.iter() {
         // Do not hold the provider_settings lock for more than necessary
         let provider_settings = {
             debug!("Acquiring a read lock on sequencer_config for `{net}`");
@@ -122,7 +123,7 @@ async fn try_send_aggregation_consensus_trigger_to_reporters(
 
         let serialized_updates = match get_serialized_updates_for_network(
             net,
-            p,
+            provider,
             &mut updates,
             &provider_settings,
             Some(feeds_metrics),
@@ -130,7 +131,10 @@ async fn try_send_aggregation_consensus_trigger_to_reporters(
         )
         .await
         {
-            Ok(res) => res,
+            Ok(res) => {
+                debug!("Got serialized updates for network {net}");
+                res
+            }
             Err(e) => {
                 warn!("Could not get serialized updates for network {net} due to: {e}");
                 continue;
@@ -157,7 +161,7 @@ async fn try_send_aggregation_consensus_trigger_to_reporters(
             }
         };
 
-        debug!("About to send feed values to kafka");
+        debug!("About to send feed values to kafka; network={net}");
         match kafka_endpoint
             .send(
                 FutureRecord::<(), _>::to("aggregation_consensus").payload(&serialized_updates),
@@ -166,7 +170,7 @@ async fn try_send_aggregation_consensus_trigger_to_reporters(
             .await
         {
             Ok(res) => debug!(
-                "Successfully sent batch of aggregated feed values to kafka endpoint: {res:?}"
+                "Successfully sent batch of aggregated feed values to kafka endpoint: {res:?}; network={net}"
             ),
             Err(e) => {
                 error!("Failed to send batch of aggregated feed values for network: {net}, block height: {block_height} to kafka endpoint! {e:?}")
