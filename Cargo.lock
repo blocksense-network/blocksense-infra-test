@@ -4728,6 +4728,8 @@ dependencies = [
  "alloy-primitives",
  "anyhow",
  "hex",
+ "serde 1.0.217",
+ "serde_json",
 ]
 
 [[package]]
