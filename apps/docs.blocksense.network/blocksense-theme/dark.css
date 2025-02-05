@@ -99,3 +99,23 @@
 .dark .nextra-breadcrumb__link--active {
   @apply text-neutral-300 underline underline-offset-4;
 }
+
+.dark .pagination__link:hover {
+  @apply text-neutral-300;
+}
+
+.dark .pagination__link--prev {
+  @apply text-gray-300;
+}
+
+.dark .pagination__link--prev:hover {
+  @apply text-white;
+}
+
+.dark .pagination__link--next {
+  @apply text-blue-500;
+}
+
+.dark .pagination__link--next:hover {
+  @apply text-blue-700;
+}

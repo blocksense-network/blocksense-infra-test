@@ -75,3 +75,19 @@ mark {
 .nextra-breadcrumb__link--active {
   @apply underline underline-offset-4;
 }
+
+.pagination__link {
+  @apply text-gray-900;
+}
+
+.pagination__link:hover {
+  @apply text-gray-800;
+}
+
+.pagination__link--prev {
+  @apply text-gray-500;
+}
+
+.pagination__link--next {
+  @apply text-blue-500;
+}

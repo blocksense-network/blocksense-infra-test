@@ -7,12 +7,13 @@ import { useConfig, useThemeConfig } from '../stores';
 
 const classes = {
   link: cn(
+    'pagination__link',
     'x:focus-visible:nextra-focus x:text-gray-600 x:dark:text-gray-400',
     'x:hover:text-gray-800 x:dark:hover:text-gray-200',
     'x:contrast-more:text-gray-700 x:contrast-more:dark:text-gray-100',
-    'x:flex x:max-w-[50%] x:items-center x:gap-1 x:py-4 x:text-base x:font-medium x:transition-colors x:[word-break:break-word] x:md:text-lg',
+    'x:flex x:max-w-[50%] x:items-center x:gap-1 x:py-4 x:text-sm x:font-medium x:transition-colors x:[word-break:break-word]',
   ),
-  icon: cn('x:inline x:shrink-0'),
+  icon: cn('pagination__icon', 'x:inline x:shrink-0'),
 };
 
 export const Pagination: FC = () => {
@@ -30,6 +31,7 @@ export const Pagination: FC = () => {
   return (
     <div
       className={cn(
+        'pagination',
         'x:mb-8 x:flex x:items-center x:border-t x:pt-8 nextra-border',
         'x:print:hidden',
       )}
@@ -38,11 +40,17 @@ export const Pagination: FC = () => {
         <NextLink
           href={prev.route}
           title={prev.title}
-          className={cn(classes.link, 'x:pe-4')}
+          className={cn(
+            classes.link,
+            'pagination__link--prev x:pe-4 x:dark:text-gray-600/75',
+          )}
         >
           <ArrowRightIcon
             height="20"
-            className={cn(classes.icon, 'x:ltr:rotate-180')}
+            className={cn(
+              classes.icon,
+              'pagination__icon--prev x:ltr:rotate-180',
+            )}
           />
           {prev.title}
         </NextLink>
@@ -51,12 +59,18 @@ export const Pagination: FC = () => {
         <NextLink
           href={next.route}
           title={next.title}
-          className={cn(classes.link, 'x:ps-4 x:ms-auto x:text-end')}
+          className={cn(
+            classes.link,
+            'pagination__link--next x:ps-4 x:ms-auto x:text-end',
+          )}
         >
           {next.title}
           <ArrowRightIcon
             height="20"
-            className={cn(classes.icon, 'x:rtl:rotate-180')}
+            className={cn(
+              classes.icon,
+              'pagination__icon--next x:rtl:rotate-180',
+            )}
           />
         </NextLink>
       )}
