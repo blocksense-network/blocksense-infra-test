@@ -10,7 +10,7 @@ use crate::common::{fill_results, ResourceData, ResourceResult};
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct KuCoinPrice {
     pub symbol: String,
-    pub last: String,
+    pub last: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
@@ -46,8 +46,9 @@ pub async fn get_kucoin_prices(
         .data
         .ticker
         .into_iter()
+        .filter(|value| value.last.is_some())
         // KuCoin have symbols in format "X-Y". We need to match logic in `fill_results`
-        .map(|value| (value.symbol.replace("-", ""), value.last))
+        .map(|value| (value.symbol.replace("-", ""), value.last.unwrap()))
         .collect();
 
     fill_results(resources, results, response)?;
