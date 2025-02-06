@@ -3428,6 +3428,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "blocksense-sdk",
+ "futures",
  "serde 1.0.217",
  "serde_derive",
  "serde_json",
