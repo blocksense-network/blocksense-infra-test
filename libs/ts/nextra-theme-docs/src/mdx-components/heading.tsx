@@ -18,12 +18,12 @@ const createHeading = (
               ? 'x:font-bold'
               : 'x:font-semibold x:target:animate-[fade-in_1.5s]',
             {
-              h1: 'x:mt-2 x:text-4xl',
-              h2: 'x:mt-10 x:border-b x:pb-1 x:text-3xl nextra-border',
-              h3: 'x:mt-8 x:text-2xl',
-              h4: 'x:mt-8 x:text-xl',
-              h5: 'x:mt-8 x:text-lg',
-              h6: 'x:mt-8 x:text-base',
+              h1: 'h1-mdx x:mt-2',
+              h2: 'h2-mdx x:mt-10 x:border-b x:pb-1 nextra-border',
+              h3: 'h3-mdx x:mt-8',
+              h4: 'h4-mdx x:mt-8',
+              h5: 'h5-mdx x:mt-8',
+              h6: 'h6-mdx x:mt-8',
             }[Tag],
             className,
           );

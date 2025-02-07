@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import './variables.css';
 @import './states/focus.css';
-@import './font/font-face.css';
 @import './font/typography.css';
 @import './nextra.css';
 @import './dark.css';

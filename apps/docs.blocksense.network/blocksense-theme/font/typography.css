@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import './font-face.css';
+@import './mdx-styles.css';
 
 @layer base {
   h1 {
@@ -27,7 +29,7 @@
   }
 
   p {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
   }
 
   span {
