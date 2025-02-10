@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{ResourceData, ResourceResult};
+use crate::common::{fill_results, ResourceData, ResourceResult};
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct CoinbaseData {
@@ -25,7 +25,7 @@ pub async fn get_coinbase_prices(
 ) -> Result<()> {
     let url = Url::parse_with_params(
         "https://api.coinbase.com/v2/exchange-rates",
-        &[("currency", currency)],
+        &[("currency", currency.clone())],
     )?;
 
     let mut req = Request::builder();
@@ -40,27 +40,21 @@ pub async fn get_coinbase_prices(
     let string = String::from_utf8(body)?;
     let value: CoinbaseResponse = serde_json::from_str(&string)?;
 
-    for resource in resources {
-        if value.data.rates.contains_key(&resource.symbol) {
-            let res = results.entry(resource.id.clone()).or_default();
+    let pair_prices: HashMap<String, String> = value
+        .data
+        .rates
+        .into_iter()
+        .filter_map(|(asset, price)| match price.parse::<f64>() {
+            Ok(price_as_number) => {
+                let price = (1.0 / price_as_number).to_string();
+                let pair = format!("{}{}", asset, currency);
+                Some((pair, price))
+            }
+            Err(_) => None,
+        })
+        .collect();
 
-            // Since the endpoint we currently use give us the price of 1 USD in the given currency
-            // we need to invert the price to get the price of 1 unit of the given currency in USD.
-            let rate = match value.data.rates.get(&resource.symbol) {
-                Some(rate) => rate,
-                None => continue,
-            };
-            let price_as_number: f64 = rate.parse()?;
-            let price: String = (1.0 / price_as_number).to_string();
-
-            res.push(ResourceResult {
-                id: resource.id.clone(),
-                symbol: resource.symbol.clone(),
-                usd_symbol: resource.symbol.to_string(),
-                result: price,
-            });
-        }
-    }
+    fill_results(resources, results, pair_prices)?;
 
     Ok(())
 }
