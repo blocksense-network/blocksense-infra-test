@@ -12,6 +12,7 @@ mod gemini;
 mod kraken;
 mod kucoin;
 mod mexc;
+mod okx;
 mod upbit;
 
 use anyhow::{bail, Context, Result};
