@@ -1,11 +1,10 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct BitgetPrice {
@@ -19,10 +18,7 @@ pub struct BitgetResponse {
     pub data: Vec<BitgetPrice>,
 }
 
-pub async fn get_bitget_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_bitget_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api.bitget.com/api/spot/v1/market/tickers")?;
 
     let mut req = Request::builder();
@@ -37,13 +33,11 @@ pub async fn get_bitget_prices(
     let body_as_string = String::from_utf8(body)?;
     let value: BitgetResponse = serde_json::from_str(&body_as_string)?;
 
-    let response: HashMap<String, String> = value
+    let response: PairPriceData = value
         .data
         .into_iter()
         .map(|value| (value.symbol, value.close))
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

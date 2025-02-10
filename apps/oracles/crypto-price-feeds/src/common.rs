@@ -3,6 +3,8 @@ use std::collections::HashMap;
 
 pub const USD_SYMBOLS: [&str; 3] = ["USD", "USDC", "USDT"];
 
+pub type PairPriceData = HashMap<String, String>;
+
 #[derive(Debug)]
 pub struct ResourceData {
     pub symbol: String,

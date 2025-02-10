@@ -6,7 +6,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct KrakenPrice {
@@ -19,10 +19,7 @@ pub struct KrakenResponse {
     pub result: HashMap<String, KrakenPrice>,
 }
 
-pub async fn get_kraken_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_kraken_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api.kraken.com/0/public/Ticker")?;
 
     let mut req = Request::builder();
@@ -36,7 +33,7 @@ pub async fn get_kraken_prices(
     let body = resp.into_body();
     let string = String::from_utf8(body)?;
     let value: KrakenResponse = serde_json::from_str(&string)?;
-    let mut response: HashMap<String, String> = HashMap::new();
+    let mut response: PairPriceData = HashMap::new();
     for (symbol, price) in value.result {
         response.insert(
             symbol.clone(),
@@ -51,7 +48,5 @@ pub async fn get_kraken_prices(
         );
     }
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

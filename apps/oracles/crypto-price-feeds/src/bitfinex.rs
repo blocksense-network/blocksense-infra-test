@@ -1,13 +1,12 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::{Deserialize, Deserializer};
 use serde_json::{from_value, Value};
 
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct TradingPairTicker {
@@ -93,10 +92,7 @@ impl<'de> Deserialize<'de> for BitfinexPrice {
     }
 }
 
-pub async fn get_bitfinex_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_bitfinex_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api-pub.bitfinex.com/v2/tickers?symbols=ALL")?;
 
     let mut req = Request::builder();
@@ -122,12 +118,10 @@ pub async fn get_bitfinex_prices(
         })
         .collect();
 
-    let response: HashMap<String, String> = trading_tickers
+    let response: PairPriceData = trading_tickers
         .into_iter()
         .map(|value| (value.symbol().to_string(), value.price().to_string()))
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

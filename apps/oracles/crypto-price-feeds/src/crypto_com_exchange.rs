@@ -1,11 +1,10 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct CryptoComExchangePrice {
@@ -24,10 +23,7 @@ pub struct CryptoComExchangeResponse {
     pub result: CryptoComExchangeResult,
 }
 
-pub async fn get_crypto_com_exchange_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_crypto_com_exchange_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api.crypto.com/exchange/v1/public/get-tickers")?;
 
     let mut req = Request::builder();
@@ -42,7 +38,7 @@ pub async fn get_crypto_com_exchange_prices(
     let body_as_string = String::from_utf8(body)?;
     let value: CryptoComExchangeResponse = serde_json::from_str(&body_as_string)?;
 
-    let response: HashMap<String, String> = value
+    let response: PairPriceData = value
         .result
         .data
         .into_iter()
@@ -51,7 +47,5 @@ pub async fn get_crypto_com_exchange_prices(
         .map(|value| (value.i.replace("_", ""), value.a))
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

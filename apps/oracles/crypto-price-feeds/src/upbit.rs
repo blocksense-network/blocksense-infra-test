@@ -1,11 +1,10 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct UpBitMarketResponse {
@@ -40,10 +39,7 @@ pub async fn get_upbit_market() -> Result<Vec<String>> {
     Ok(markets)
 }
 
-pub async fn get_upbit_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_upbit_prices() -> Result<PairPriceData> {
     let markets = get_upbit_market().await?;
     let all_markets = markets.join(",");
     let url = Url::parse_with_params(
@@ -62,7 +58,7 @@ pub async fn get_upbit_prices(
     let body_as_string = String::from_utf8(body)?;
     let prices: Vec<UpBitResponse> = serde_json::from_str(&body_as_string)?;
 
-    let response: HashMap<String, String> = prices
+    let response: PairPriceData = prices
         .into_iter()
         .map(|price| {
             let parts: Vec<&str> = price.market.split('-').collect();
@@ -71,7 +67,5 @@ pub async fn get_upbit_prices(
         })
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

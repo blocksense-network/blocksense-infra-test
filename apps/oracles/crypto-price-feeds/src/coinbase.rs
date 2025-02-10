@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct CoinbaseData {
@@ -18,11 +18,7 @@ pub struct CoinbaseResponse {
     pub data: CoinbaseData,
 }
 
-pub async fn get_coinbase_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-    currency: String,
-) -> Result<()> {
+pub async fn get_coinbase_prices(currency: String) -> Result<PairPriceData> {
     let url = Url::parse_with_params(
         "https://api.coinbase.com/v2/exchange-rates",
         &[("currency", currency.clone())],
@@ -40,7 +36,7 @@ pub async fn get_coinbase_prices(
     let string = String::from_utf8(body)?;
     let value: CoinbaseResponse = serde_json::from_str(&string)?;
 
-    let pair_prices: HashMap<String, String> = value
+    let pair_prices: PairPriceData = value
         .data
         .rates
         .into_iter()
@@ -54,7 +50,5 @@ pub async fn get_coinbase_prices(
         })
         .collect();
 
-    fill_results(resources, results, pair_prices)?;
-
-    Ok(())
+    Ok(pair_prices)
 }

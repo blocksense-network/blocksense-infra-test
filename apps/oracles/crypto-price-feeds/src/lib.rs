@@ -6,6 +6,7 @@ mod bybit;
 mod coinbase;
 mod common;
 mod crypto_com_exchange;
+mod fetch_prices;
 mod gemini;
 mod kraken;
 mod kucoin;
@@ -19,23 +20,11 @@ use blocksense_sdk::{
     // price_pair::{DataProvider, OraclePriceHelper},
     oracle_component,
 };
+use serde::Deserialize;
 use std::collections::HashMap;
 
-use serde::Deserialize;
-
 use crate::common::{ResourceData, ResourceResult};
-use binance::get_binance_prices;
-use binance_us::get_binance_us_prices;
-use bitfinex::get_bitfinex_prices;
-use bitget::get_bitget_prices;
-use bybit::get_bybit_prices;
-use coinbase::get_coinbase_prices;
-use crypto_com_exchange::get_crypto_com_exchange_prices;
-use gemini::get_gemini_prices;
-use kraken::get_kraken_prices;
-use kucoin::get_kucoin_prices;
-use mexc::get_mexc_prices;
-use upbit::get_upbit_prices;
+use fetch_prices::fetch_all_prices;
 
 //TODO(adikov): Refacotr:
 //1. Move all specific exchange logic to separate files.
@@ -120,48 +109,10 @@ async fn oracle_request(settings: Settings) -> Result<Payload> {
             symbol: data.cmc_quote.clone(),
             id: feed.id.clone(),
         });
-        //TODO(adikov): We need to get all the proper symbols from the new data feed configuration.
     }
 
-    get_binance_prices(&resources, &mut results).await?;
+    fetch_all_prices(&resources, &mut results).await?;
     print_results(&resources, &results);
-
-    get_kraken_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_bybit_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_coinbase_prices(&resources, &mut results, "USD".to_string()).await?;
-    print_results(&resources, &results);
-
-    get_kucoin_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_bitfinex_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_mexc_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_crypto_com_exchange_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_binance_us_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_upbit_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_gemini_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    get_bitget_prices(&resources, &mut results).await?;
-    print_results(&resources, &results);
-
-    //TODO(adikov): Write the logic for transforming the data to DataFeedResult
-    // We need proper way to match binance, kraken, bybit and coinbase response to
-    // data feed ID.
 
     let payload = process_results(results)?;
     println!("Final Payload - {:?}", payload.values);

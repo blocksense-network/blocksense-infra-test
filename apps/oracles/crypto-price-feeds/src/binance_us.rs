@@ -1,11 +1,10 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct BinanceUsPrice {
@@ -15,10 +14,7 @@ pub struct BinanceUsPrice {
 
 // Binance US provides wrong price for pair BTC/USD. For the USDT stable coin the price is correct.
 // It might mean other pairs with fiat quote might be incorrect
-pub async fn get_binance_us_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_binance_us_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api.binance.us/api/v3/ticker/price")?;
 
     let mut req = Request::builder();
@@ -32,12 +28,10 @@ pub async fn get_binance_us_prices(
     let body = resp.into_body();
     let string = String::from_utf8(body)?;
     let values: Vec<BinanceUsPrice> = serde_json::from_str(&string)?;
-    let response: HashMap<String, String> = values
+    let response: PairPriceData = values
         .into_iter()
         .map(|value| (value.symbol, value.price))
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }

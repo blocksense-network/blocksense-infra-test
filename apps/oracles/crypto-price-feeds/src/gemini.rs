@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct GeminiResponse {
@@ -58,13 +58,10 @@ pub async fn fetch_gemini_price(symbol: String) -> Option<(String, String)> {
     Some((symbol, response.last))
 }
 
-pub async fn get_gemini_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_gemini_prices() -> Result<PairPriceData> {
     let symbols = get_gemini_symbols().await?;
 
-    let mut prices = HashMap::new();
+    let mut prices: PairPriceData = HashMap::new();
     let mut futures = FuturesUnordered::new();
 
     // Spawn all fetches concurrently
@@ -79,7 +76,5 @@ pub async fn get_gemini_prices(
         }
     }
 
-    fill_results(resources, results, prices)?;
-
-    Ok(())
+    Ok(prices)
 }

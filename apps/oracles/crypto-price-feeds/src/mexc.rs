@@ -1,11 +1,10 @@
 use anyhow::Result;
 use blocksense_sdk::spin::http::{send, Method, Request, Response};
-use std::collections::HashMap;
 
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct MEXCPrice {
@@ -13,10 +12,7 @@ pub struct MEXCPrice {
     pub price: String,
 }
 
-pub async fn get_mexc_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_mexc_prices() -> Result<PairPriceData> {
     let url = Url::parse("https://api.mexc.com/api/v3/ticker/price")?;
 
     let mut req = Request::builder();
@@ -30,12 +26,10 @@ pub async fn get_mexc_prices(
     let body = resp.into_body();
     let string = String::from_utf8(body)?;
     let values: Vec<MEXCPrice> = serde_json::from_str(&string)?;
-    let response: HashMap<String, String> = values
+    let response: PairPriceData = values
         .into_iter()
         .map(|value| (value.symbol, value.price))
         .collect();
 
-    fill_results(resources, results, response)?;
-
-    Ok(())
+    Ok(response)
 }
