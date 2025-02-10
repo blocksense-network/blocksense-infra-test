@@ -1,1 +1,1 @@
-export { NotFoundPage as default } from '@blocksense/nextra-theme-docs';
+export { Error404 as default } from '../components/common/Error404';
