@@ -7,6 +7,7 @@ mod coinbase;
 mod common;
 mod crypto_com_exchange;
 mod fetch_prices;
+mod gate_io;
 mod gemini;
 mod kraken;
 mod kucoin;

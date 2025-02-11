@@ -15,6 +15,7 @@ use crate::bybit::get_bybit_prices;
 use crate::coinbase::get_coinbase_prices;
 use crate::common::{fill_results, PairPriceData, ResourceData, ResourceResult};
 use crate::crypto_com_exchange::get_crypto_com_exchange_prices;
+use crate::gate_io::get_gate_io_prices;
 use crate::gemini::get_gemini_prices;
 use crate::kraken::get_kraken_prices;
 use crate::kucoin::get_kucoin_prices;
@@ -56,6 +57,7 @@ pub async fn fetch_all_prices(
         "Crypto.com",
         get_crypto_com_exchange_prices(),
     ));
+    futures.push(exchange_future("Gate.io", get_gate_io_prices()));
     futures.push(exchange_future("Gemini", get_gemini_prices()));
     futures.push(exchange_future("Kraken", get_kraken_prices()));
     futures.push(exchange_future("KuCoin", get_kucoin_prices()));
