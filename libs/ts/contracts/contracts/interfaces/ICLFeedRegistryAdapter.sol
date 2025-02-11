@@ -24,7 +24,7 @@ interface ICLFeedRegistryAdapter is IChainlinkFeedRegistry {
   function OWNER() external view returns (address);
 
   /// @notice Set the feed for a given pair
-  /// @dev Stores immutable values (decimals, key, description) and contract address from CLAggregatorAdapter
+  /// @dev Stores immutable values (decimals, id, description) and contract address from CLAggregatorAdapter
   /// @param feeds Array of base, quote and feed address data
   function setFeeds(Feed[] calldata feeds) external;
 }

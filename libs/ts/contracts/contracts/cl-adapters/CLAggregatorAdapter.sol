@@ -21,7 +21,7 @@ contract CLAggregatorAdapter is ICLAggregatorAdapter {
   /// @notice Constructor
   /// @param _description The description of the feed
   /// @param _decimals The decimals of the feed
-  /// @param _id The key ID of the feed
+  /// @param _id The ID of the feed
   /// @param _dataFeedStore The address of the data feed store
   constructor(
     string memory _description,

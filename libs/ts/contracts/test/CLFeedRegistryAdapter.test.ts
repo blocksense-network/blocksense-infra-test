@@ -16,14 +16,14 @@ const data = [
   {
     description: 'ETH/USD',
     decimals: 8,
-    key: 3,
+    id: 3,
     base: TOKENS.ETH,
     quote: TOKENS.USD,
   },
   {
     description: 'BTC/USD',
     decimals: 6,
-    key: 132,
+    id: 132,
     base: TOKENS.BTC,
     quote: TOKENS.USD,
   },
@@ -58,7 +58,7 @@ describe('CLFeedRegistryAdapter', async () => {
 
     for (const d of data) {
       const adapter = new CLAdapterWrapper();
-      await adapter.init(d.description, d.decimals, d.key, proxy);
+      await adapter.init(d.description, d.decimals, d.id, proxy);
       clAdapters.push(adapter);
     }
 

@@ -20,7 +20,7 @@ let clAdapter: CLAdapterWrapper;
 let data = {
   description: 'ETH / USD',
   decimals: 8,
-  key: 15,
+  id: 15,
 };
 
 describe('Gas usage comparison between Chainlink and Blocksense @fork', async function () {
@@ -50,17 +50,17 @@ describe('Gas usage comparison between Chainlink and Blocksense @fork', async fu
     );
 
     clAdapter = new CLAdapterWrapper();
-    await clAdapter.init(data.description, data.decimals, data.key, proxy);
+    await clAdapter.init(data.description, data.decimals, data.id, proxy);
     const value = encodeDataAndTimestamp(312343354, Date.now() - 1234);
     await clAdapter.setFeed(sequencer, value, 1n);
 
     const signer = (await ethers.getSigners())[5];
 
     proxyV1 = new CLV1Wrapper();
-    await proxyV1.init(data.description, data.decimals, data.key, signer);
+    await proxyV1.init(data.description, data.decimals, data.id, signer);
 
     proxyV2 = new CLV2Wrapper();
-    await proxyV2.init(data.description, data.decimals, data.key, signer);
+    await proxyV2.init(data.description, data.decimals, data.id, signer);
 
     await proxyV1.setFeed(value);
     await proxyV2.setFeed(value);

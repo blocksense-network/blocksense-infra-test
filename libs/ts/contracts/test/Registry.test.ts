@@ -34,14 +34,14 @@ let data = [
   {
     description: 'ETH/USD',
     decimals: 8,
-    key: 15,
+    id: 15,
     base: TOKENS.ETH,
     quote: TOKENS.USD,
   },
   {
     description: 'BTC/USD',
     decimals: 6,
-    key: 18,
+    id: 18,
     base: TOKENS.BTC,
     quote: TOKENS.USD,
   },
@@ -77,12 +77,9 @@ describe('Gas usage comparison between Chainlink and Blocksense registry @fork',
       [true],
     );
 
-    clRegistry = new CLRegistryBaseWrapper('CLRegistry', proxy.contract);
-    await clRegistry.init(registryOwner);
-
     for (const d of data) {
       const adapter = new CLAdapterWrapper();
-      await adapter.init(d.description, d.decimals, d.key, proxy);
+      await adapter.init(d.description, d.decimals, d.id, proxy);
       clAdapters.push(adapter);
     }
 
@@ -99,14 +96,14 @@ describe('Gas usage comparison between Chainlink and Blocksense registry @fork',
       await aggregatorWrappersV1[aggregatorWrappersV1.length - 1].init(
         d.description,
         d.decimals,
-        d.key,
+        d.id,
         proxyV1,
       );
 
       await aggregatorWrappersV2[aggregatorWrappersV2.length - 1].init(
         d.description,
         d.decimals,
-        d.key,
+        d.id,
         proxyV2,
       );
     }
