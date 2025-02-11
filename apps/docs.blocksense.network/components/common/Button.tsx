@@ -73,6 +73,7 @@ const ButtonBase = ({
       href={href}
       className={className}
       target={target}
+      {...(href && target === '_blank' ? { rel: 'noopener noreferrer' } : {})}
       onFocus={onFocus}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
