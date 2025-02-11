@@ -20,6 +20,7 @@ use crate::gemini::get_gemini_prices;
 use crate::kraken::get_kraken_prices;
 use crate::kucoin::get_kucoin_prices;
 use crate::mexc::get_mexc_prices;
+use crate::okx::get_okx_prices;
 use crate::upbit::get_upbit_prices;
 
 // Define boxed future type that includes the exchange name
@@ -62,6 +63,7 @@ pub async fn fetch_all_prices(
     futures.push(exchange_future("Kraken", get_kraken_prices()));
     futures.push(exchange_future("KuCoin", get_kucoin_prices()));
     futures.push(exchange_future("MEXC", get_mexc_prices()));
+    futures.push(exchange_future("OKX", get_okx_prices()));
     futures.push(exchange_future("Upbit", get_upbit_prices()));
 
     // Process results as they complete

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use crate::common::{fill_results, ResourceData, ResourceResult};
+use crate::common::PairPriceData;
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 pub struct OKXInstrument {
     #[serde(rename = "instId")]
@@ -82,13 +82,10 @@ pub async fn fetch_okx_price(symbol: String) -> Option<(String, String)> {
     Some((data.inst_id.clone(), data.idx_px.clone()))
 }
 
-pub async fn get_okx_prices(
-    resources: &Vec<ResourceData>,
-    results: &mut HashMap<String, Vec<ResourceResult>>,
-) -> Result<()> {
+pub async fn get_okx_prices() -> Result<PairPriceData> {
     let symbols = get_okx_symbols().await?;
 
-    let mut prices = HashMap::new();
+    let mut prices: PairPriceData = HashMap::new();
     let mut futures = FuturesUnordered::new();
 
     // Spawn all fetches concurrently
@@ -103,7 +100,5 @@ pub async fn get_okx_prices(
         }
     }
 
-    fill_results(resources, results, prices)?;
-
-    Ok(())
+    Ok(prices)
 }
