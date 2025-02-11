@@ -1,10 +1,5 @@
 import { cn } from '@/lib/utils';
-import React, {
-  ReactNode,
-  ReactElement,
-  Children,
-  isValidElement,
-} from 'react';
+import { ReactNode, ReactElement, Children, isValidElement } from 'react';
 
 type TooltipProps = {
   position?: 'top' | 'right' | 'bottom' | 'left';
@@ -15,19 +10,19 @@ type TooltipProps = {
 const TooltipContent = ({ children }: TooltipProps) => children;
 
 const positionClasses = {
-  top: 'bottom-full left-1/2 transform -translate-x-1/2 mb-2',
-  right: 'top-1/2 left-full transform -translate-y-1/2 ml-2',
-  bottom: 'top-full left-1/2 transform -translate-x-1/2 mt-2',
-  left: 'top-1/2 right-full transform -translate-y-1/2 mr-2',
+  top: 'tooltip__content--top bottom-full left-1/2 -translate-x-1/2 mb-4',
+  right: 'tooltip__content--right top-1/2 left-full -translate-y-1/2 ml-4',
+  bottom: 'tooltip__content--bottom top-full left-1/2 -translate-x-1/2 mt-4',
+  left: 'tooltip__content--left top-1/2 right-full -translate-y-1/2 mr-4',
 };
 
 const arrowClasses = {
-  top: 'absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-transparent border-b-4 border-b-black',
+  top: 'tooltip__arrow--top bottom-[-6px] left-1/2 -translate-x-1/2 border-b-black',
   right:
-    'absolute top-1/2 left-[-10px] transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-transparent border-r-4 border-r-black',
+    'tooltip__arrow--right top-1/2 left-[-10px] -translate-y-1/2 border-r-black',
   bottom:
-    'absolute top-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-transparent border-t-4 border-t-black',
-  left: 'absolute top-1/2 right-[-10px] transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-transparent border-l-4 border-l-black',
+    'tooltip__arrow--bottom top-[-6px] left-1/2 -translate-x-1/2 border-t-black',
+  left: 'tooltip__arrow--left top-1/2 right-[-10px] -translate-y-1/2 border-l-black',
 };
 
 export const Tooltip = ({
@@ -36,29 +31,25 @@ export const Tooltip = ({
   contentClassName = '',
 }: TooltipProps) => {
   const childrenArray = Children.toArray(children);
-
   const content = childrenArray.find(
-    child =>
-      isValidElement(child) && (child as ReactElement).type === TooltipContent,
-  ) as ReactElement | undefined;
-
+    child => isValidElement(child) && child.type === TooltipContent,
+  ) as ReactElement;
   const trigger = childrenArray.find(
-    child =>
-      isValidElement(child) && (child as ReactElement).type !== TooltipContent,
-  ) as ReactElement | null;
+    child => isValidElement(child) && child.type !== TooltipContent,
+  ) as ReactElement;
 
   return (
-    <div className="relative inline-flex items-center group">
+    <div className="tooltip relative inline-flex items-center group">
       {trigger}
       {content && (
         <div
           className={cn(
-            `absolute ${positionClasses[position]} hidden group-hover:block group-focus:block px-4 py-1.5 text-sm font-semibold border border-neutral-300 rounded-md shadow-md z-50 whitespace-nowrap text-gray-800 bg-white text-md max-w-[280px] dark:bg-neutral-900 dark:border-neutral-600 dark:text-white ${contentClassName}`,
+            `tooltip__content absolute ${positionClasses[position]} hidden group-hover:block group-focus:block px-4 py-1.5 text-sm font-semibold border rounded-md shadow-md z-50 whitespace-nowrap border-neutral-200 text-gray-800 bg-white dark:bg-neutral-900 dark:border-neutral-600 dark:text-white ${contentClassName}`,
           )}
         >
           {content?.props.children}
           <div
-            className={`absolute ${arrowClasses[position]} invert border-solid`}
+            className={`tooltip__arrow absolute ${arrowClasses[position]} w-0 h-0 border-transparent invert border-solid border-4`}
           />
         </div>
       )}
