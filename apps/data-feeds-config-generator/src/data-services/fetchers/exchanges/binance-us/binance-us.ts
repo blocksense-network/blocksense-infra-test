@@ -14,15 +14,17 @@ export class BinanceUSExchangeAssetsFetcher
 {
   async fetchAssets(): Promise<AssetInfo<BinanceUSExchangeAssetInfo>[]> {
     const assets = await fetchBinanceUSExchangeInfo();
-    return assets.symbols.map(asset => ({
-      pair: {
-        base: asset.baseAsset,
-        quote: asset.quoteAsset,
-      },
-      data: {
-        symbol: asset.symbol,
-      },
-    }));
+    return assets.symbols
+      .filter(asset => !asset.symbol.endsWith('USD'))
+      .map(asset => ({
+        pair: {
+          base: asset.baseAsset,
+          quote: asset.quoteAsset,
+        },
+        data: {
+          symbol: asset.symbol,
+        },
+      }));
   }
 }
 
