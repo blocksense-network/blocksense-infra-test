@@ -296,21 +296,40 @@ pub async fn eth_batch_send_to_contract(
                 .input(Some(input.clone()).into());
             debug!("Sending initial tx: {tx:?}");
         } else {
-            debug!("Getting nonce for network {net}...");
-            let nonce = match rpc_handle
+            debug!("Getting nonce for network {net} and address {contract_address}...");
+            let mut nonce = match rpc_handle
                 .get_transaction_count(contract_address)
                 .latest()
                 .await
             {
                 Ok(nonce) => {
-                    debug!("Got nonce={nonce} for network {net}");
+                    debug!("Got nonce={nonce} for network {net} and address {contract_address}");
                     nonce
                 }
                 Err(err) => {
-                    debug!("Failed to get nonce for network {net} due to {err}");
+                    debug!("Failed to get nonce for network {net} and address {contract_address} due to {err}");
                     return Err(err.into());
                 }
             };
+
+            // TODO: remove previous, if this fixes nonce=1
+            if nonce == 1 {
+                debug!("Getting nonce for network {net} and address {sender_address}...");
+                nonce = match rpc_handle
+                    .get_transaction_count(sender_address)
+                    .latest()
+                    .await
+                {
+                    Ok(nonce) => {
+                        debug!("Got nonce={nonce} for network {net} and address {sender_address}");
+                        nonce
+                    }
+                    Err(err) => {
+                        debug!("Failed to get nonce for network {net} and address {sender_address} due to {err}");
+                        return Err(err.into());
+                    }
+                };
+            }
 
             let price_increment = 1.0 + (timed_out_count as f64 * retry_fee_increment_fraction);
 
