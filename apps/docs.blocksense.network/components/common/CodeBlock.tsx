@@ -19,6 +19,7 @@ type CodeBlockProps = {
     disabled: boolean;
   };
   transformers?: ShikiTransformer[];
+  className?: string;
 };
 
 export const CodeBlock = ({
@@ -27,6 +28,7 @@ export const CodeBlock = ({
   themes = shikiDefaultThemes.themes,
   copy = { hasCopyButton: true, disabled: false },
   transformers = [],
+  className = '',
 }: CodeBlockProps) => {
   const [html, setHtml] = useState('');
   const { theme, systemTheme } = useTheme();
@@ -44,12 +46,14 @@ export const CodeBlock = ({
       theme: currentTheme,
       transformers,
     })
-      .then((htmlString = '') => {
-        if (currentTheme === themes.dark) {
-          return htmlString.replace(/class="shiki/, 'class="shiki dark');
-        }
-        return htmlString;
-      })
+      .then((htmlString = '') =>
+        htmlString.replace(/class="shiki/, `class="shiki ${className}`),
+      )
+      .then((htmlString = '') =>
+        currentTheme === themes.dark
+          ? htmlString.replace(/class="shiki/, 'class="shiki dark')
+          : htmlString,
+      )
       .then(setHtml);
   }, [code, lang, currentTheme, transformers]);
 
