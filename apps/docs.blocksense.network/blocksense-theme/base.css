@@ -137,6 +137,11 @@ main > h1 {
   .h3__separator {
     @apply border-b border-neutral-200;
   }
+
+  .abi-modal--pre {
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
 }
 
 .nextra-toc a {

@@ -77,6 +77,7 @@ export const ABIModal = ({ abi, name = '' }: ABIModalProps) => {
               code={getABI()}
               lang="json"
               themes={shikiDefaultThemes.jsonThemes}
+              className="abi-modal--pre"
             />
           </ScrollArea>
         </DialogContent>
@@ -107,6 +108,7 @@ export const ABIModal = ({ abi, name = '' }: ABIModalProps) => {
             code={getABI()}
             lang="json"
             themes={shikiDefaultThemes.jsonThemes}
+            className="abi-modal--pre"
           />
         </ScrollArea>
       </DrawerContent>
