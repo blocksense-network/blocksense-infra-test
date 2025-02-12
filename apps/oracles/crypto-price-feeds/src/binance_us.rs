@@ -30,6 +30,7 @@ pub async fn get_binance_us_prices() -> Result<PairPriceData> {
     let values: Vec<BinanceUsPrice> = serde_json::from_str(&string)?;
     let response: PairPriceData = values
         .into_iter()
+        .filter(|value| !value.symbol.ends_with("USD"))
         .map(|value| (value.symbol, value.price))
         .collect();
 
