@@ -15,7 +15,7 @@ Reading and following these guidelines will help us make the contribution proces
 
 ## Report a security vulnerability
 
-Check out the [security policy](/.github/SECURITY.md).
+Please see our [security policy](/.github/SECURITY.md).
 
 ## Making changes to Blocksense
 
@@ -35,8 +35,8 @@ Check out the [security policy](/.github/SECURITY.md).
 
 3. Make your change!
 
-   3.1 Setup a dev environment <br> - [SETUP](./SETUP.md)
-   3.2 Read our github style guide - [Branch Naming & Commit Guidelines](#-branch-naming--commit-guidelines) <br>
+   3.1 [Setup a dev environment](./SETUP.md) <br>
+   3.2 Read our GitHub style guide - [Branch Naming & Commit Guidelines](#-branch-naming--commit-guidelines) <br>
    3.3 Implement your changes <br>
    3.4 Confirm that everything works by running tests and local simulations <br>
 
