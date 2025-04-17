@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - mainnet
+      - testnet
 
 jobs:
   trigger-downstream-repo:
