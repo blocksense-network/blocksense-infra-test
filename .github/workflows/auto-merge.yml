@@ -1,17 +1,12 @@
 name: Test Auto Merge
 
 on:
-  pull_request:
-    types: [opened, reopened]
+  push:
 
 jobs:
-  trigger-downstream-repo:
+  test-auto-merge:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        include:
-          - downstream-repo: 'galin-s/test'
     steps:
       - uses: reitermarkus/automerge@v2
         with:
@@ -21,4 +16,3 @@ jobs:
           required-labels: automerge
           pull-request: ${{ github.event.inputs.pull-request }}
           review: ${{ github.event.inputs.review }}
-          dry-run: true
