@@ -27,10 +27,18 @@ jobs:
         with:
           extra-conf: accept-flake-config = true
 
-      - uses: cachix/cachix-action@v16
-        with:
-          name: ${{ vars.CACHIX_CACHE }}
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Configure Nix caches
+        run: |
+          mkdir -p "$HOME/.config/nix"
+          cat > "$HOME/.config/nix/nix.conf" <<EOF
+          accept-flake-config = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          netrc-file = $HOME/.config/nix/netrc
+          EOF
+          touch "$HOME/.config/nix/netrc"
+          chmod 0600 "$HOME/.config/nix/netrc"
 
       - name: Check formatting
         run: nix develop --impure .#pre-commit -c pre-commit run --all-files
@@ -50,10 +58,18 @@ jobs:
         with:
           extra-conf: accept-flake-config = true
 
-      - uses: cachix/cachix-action@v16
-        with:
-          name: ${{ vars.CACHIX_CACHE }}
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Configure Nix caches
+        run: |
+          mkdir -p "$HOME/.config/nix"
+          cat > "$HOME/.config/nix/nix.conf" <<EOF
+          accept-flake-config = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          netrc-file = $HOME/.config/nix/netrc
+          EOF
+          touch "$HOME/.config/nix/netrc"
+          chmod 0600 "$HOME/.config/nix/netrc"
 
       - name: Build & activate the Nix Dev Shell
         run: |
@@ -82,10 +98,18 @@ jobs:
         with:
           extra-conf: accept-flake-config = true
 
-      - uses: cachix/cachix-action@v16
-        with:
-          name: ${{ vars.CACHIX_CACHE }}
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Configure Nix caches
+        run: |
+          mkdir -p "$HOME/.config/nix"
+          cat > "$HOME/.config/nix/nix.conf" <<EOF
+          accept-flake-config = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          netrc-file = $HOME/.config/nix/netrc
+          EOF
+          touch "$HOME/.config/nix/netrc"
+          chmod 0600 "$HOME/.config/nix/netrc"
 
       - name: Build & activate the Nix Dev Shell
         run: |
@@ -114,7 +138,7 @@ jobs:
         include:
           - runner: [self-hosted, nixos, x86-64-v3]
             system: x86_64-linux
-          - runner: macos-latest-xlarge
+          - runner: [self-hosted, macOS, aarch64-darwin]
             system: aarch64-darwin
     runs-on: ${{ matrix.runner }}
 
@@ -127,10 +151,18 @@ jobs:
         with:
           extra-conf: accept-flake-config = true
 
-      - uses: cachix/cachix-action@v16
-        with:
-          name: ${{ vars.CACHIX_CACHE }}
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Configure Nix caches
+        run: |
+          mkdir -p "$HOME/.config/nix"
+          cat > "$HOME/.config/nix/nix.conf" <<EOF
+          accept-flake-config = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          netrc-file = $HOME/.config/nix/netrc
+          EOF
+          touch "$HOME/.config/nix/netrc"
+          chmod 0600 "$HOME/.config/nix/netrc"
 
       - name: Install current Bash on macOS
         if: runner.os == 'macOS'
@@ -181,10 +213,18 @@ jobs:
         with:
           extra-conf: accept-flake-config = true
 
-      - uses: cachix/cachix-action@v16
-        with:
-          name: ${{ vars.CACHIX_CACHE }}
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Configure Nix caches
+        run: |
+          mkdir -p "$HOME/.config/nix"
+          cat > "$HOME/.config/nix/nix.conf" <<EOF
+          accept-flake-config = true
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          netrc-file = $HOME/.config/nix/netrc
+          EOF
+          touch "$HOME/.config/nix/netrc"
+          chmod 0600 "$HOME/.config/nix/netrc"
 
       - name: Build & activate the Nix Dev Shell
         run: |
