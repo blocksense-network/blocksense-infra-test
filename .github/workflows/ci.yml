@@ -15,30 +15,23 @@ on:
   # Run the pipeline for each PR part of merge queues as well
   merge_group:
 
+# Nix comes from the shared setup-nix action, which uses the Nix already present
+# on the self-hosted runners and writes the cache configuration. The flake's
+# own nixConfig caches are honoured through accept-flake-config.
+env:
+  NIX_CONFIG: accept-flake-config = true
+
 jobs:
   lint:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-        if: ${{ runner.environment == 'github-hosted' }}
+      - name: Set up Nix
+        uses: metacraft-labs/devops-modules/.github/setup-nix@f0a60e098a4c53aa126f93c8018603ac69443524 # dev
         with:
-          extra-conf: accept-flake-config = true
-
-      - name: Configure Nix caches
-        run: |
-          mkdir -p "$HOME/.config/nix"
-          cat > "$HOME/.config/nix/nix.conf" <<EOF
-          accept-flake-config = true
-          experimental-features = nix-command flakes
-          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
-          netrc-file = $HOME/.config/nix/netrc
-          EOF
-          touch "$HOME/.config/nix/netrc"
-          chmod 0600 "$HOME/.config/nix/netrc"
+          trusted-public-keys: ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          substituters: ${{ vars.SUBSTITUTERS }}
 
       - name: Check formatting
         run: nix develop --impure .#pre-commit -c pre-commit run --all-files
@@ -52,24 +45,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-        if: ${{ runner.environment == 'github-hosted' }}
+      - name: Set up Nix
+        uses: metacraft-labs/devops-modules/.github/setup-nix@f0a60e098a4c53aa126f93c8018603ac69443524 # dev
         with:
-          extra-conf: accept-flake-config = true
-
-      - name: Configure Nix caches
-        run: |
-          mkdir -p "$HOME/.config/nix"
-          cat > "$HOME/.config/nix/nix.conf" <<EOF
-          accept-flake-config = true
-          experimental-features = nix-command flakes
-          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
-          netrc-file = $HOME/.config/nix/netrc
-          EOF
-          touch "$HOME/.config/nix/netrc"
-          chmod 0600 "$HOME/.config/nix/netrc"
+          trusted-public-keys: ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          substituters: ${{ vars.SUBSTITUTERS }}
 
       - name: Build & activate the Nix Dev Shell
         run: |
@@ -92,24 +72,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-        if: ${{ runner.environment == 'github-hosted' }}
+      - name: Set up Nix
+        uses: metacraft-labs/devops-modules/.github/setup-nix@f0a60e098a4c53aa126f93c8018603ac69443524 # dev
         with:
-          extra-conf: accept-flake-config = true
-
-      - name: Configure Nix caches
-        run: |
-          mkdir -p "$HOME/.config/nix"
-          cat > "$HOME/.config/nix/nix.conf" <<EOF
-          accept-flake-config = true
-          experimental-features = nix-command flakes
-          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
-          netrc-file = $HOME/.config/nix/netrc
-          EOF
-          touch "$HOME/.config/nix/netrc"
-          chmod 0600 "$HOME/.config/nix/netrc"
+          trusted-public-keys: ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          substituters: ${{ vars.SUBSTITUTERS }}
 
       - name: Build & activate the Nix Dev Shell
         run: |
@@ -145,24 +112,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-        if: ${{ runner.environment == 'github-hosted' }}
+      - name: Set up Nix
+        uses: metacraft-labs/devops-modules/.github/setup-nix@f0a60e098a4c53aa126f93c8018603ac69443524 # dev
         with:
-          extra-conf: accept-flake-config = true
-
-      - name: Configure Nix caches
-        run: |
-          mkdir -p "$HOME/.config/nix"
-          cat > "$HOME/.config/nix/nix.conf" <<EOF
-          accept-flake-config = true
-          experimental-features = nix-command flakes
-          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
-          netrc-file = $HOME/.config/nix/netrc
-          EOF
-          touch "$HOME/.config/nix/netrc"
-          chmod 0600 "$HOME/.config/nix/netrc"
+          trusted-public-keys: ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          substituters: ${{ vars.SUBSTITUTERS }}
 
       - name: Install current Bash on macOS
         if: runner.os == 'macOS'
@@ -207,24 +161,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v16
-        if: ${{ runner.environment == 'github-hosted' }}
+      - name: Set up Nix
+        uses: metacraft-labs/devops-modules/.github/setup-nix@f0a60e098a4c53aa126f93c8018603ac69443524 # dev
         with:
-          extra-conf: accept-flake-config = true
-
-      - name: Configure Nix caches
-        run: |
-          mkdir -p "$HOME/.config/nix"
-          cat > "$HOME/.config/nix/nix.conf" <<EOF
-          accept-flake-config = true
-          experimental-features = nix-command flakes
-          substituters = https://cache.nixos.org ${{ vars.SUBSTITUTERS }}
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ vars.TRUSTED_PUBLIC_KEYS }}
-          netrc-file = $HOME/.config/nix/netrc
-          EOF
-          touch "$HOME/.config/nix/netrc"
-          chmod 0600 "$HOME/.config/nix/netrc"
+          trusted-public-keys: ${{ vars.TRUSTED_PUBLIC_KEYS }}
+          substituters: ${{ vars.SUBSTITUTERS }}
 
       - name: Build & activate the Nix Dev Shell
         run: |
